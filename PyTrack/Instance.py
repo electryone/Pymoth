@@ -27,17 +27,18 @@ class Instance(object):
         self.conf = conf
         self.coordinates = coordinates                      # World coordinates of instance
         self.mode = None                                    # Either "bounding_box" or "world_coordinates"
+        self.appearance = None
         if bounding_box is not None:
-            self.__bounding_box()                           # Set mode and cast bounding_box as np array
+            self.__set_bounding_box()                       # Set mode and cast bounding_box as np array
         if coordinates is not None:
-            self.__coordinates()                            # Set mode and cast coordinates as np array
+            self.__set_coordinates()                        # Set mode and cast coordinates as np array
         if id != -1:
             np.random.seed(id)
             self.color = tuple(map(int, np.random.randint(0, 255, 3)))  # Set a random color seeded by the instance id
         else:
             self.color = (255, 255, 255)
 
-    def __bounding_box(self):
+    def __set_bounding_box(self):
         """
         Cast coordinates as np.array and set mode
         :return: None
@@ -47,7 +48,7 @@ class Instance(object):
         self.xywh = box2xywh(self.bounding_box)
         self.mode = "bounding_box"
 
-    def __coordinates(self):
+    def __set_coordinates(self):
         """
         Cast coordinates as np.array and set mode
         :return: None
@@ -67,7 +68,7 @@ class Instance(object):
         else:
             raise NotImplementedError("Get appearance not yet implemented for world_coordinates mode")
 
-    def draw(self, image, width=1, scale=1):
+    def draw(self, image, width=1, scale=1, show_ids=False):
         """
         :param image: np.array: target image
         :param width: int: line width
@@ -78,9 +79,11 @@ class Instance(object):
             rect = self.rect * scale
             x1, y1, x2, y2 = rect.astype(int)
             image = cv2.rectangle(image, pt1=(x1, y1), pt2=(x2, y2), color=self.color, thickness=width)
-            return cv2.putText(image, "%s" % self.id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2*scale, self.color)
+            if show_ids:
+                image = cv2.putText(image, "%s" % self.id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2 * scale, self.color)
+            return image
         elif self.mode == "world_coordinates":
-            print("Warning: Instance.show() is not yet implemented for 'world_coodrinates'")
+            print("Warning: Instance.draw() is not yet implemented for 'world_coodrinates'")
             return image
         else:
             print("Warning: unknown instance mode, %s" % self.mode)

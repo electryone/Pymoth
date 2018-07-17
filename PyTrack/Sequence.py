@@ -28,8 +28,7 @@ file_format = {"frame": 0,
 
 class Sequence(object):
 
-    def __init__(self, name="Sequence"):
-        self.name = name
+    def __init__(self):
         self.info = None
         self.frames = []
 
@@ -131,28 +130,24 @@ class Sequence(object):
             self.frames = [Frame(nb=i) for i in range(self.info.seqLength)]
         elif n is not None:
             self.frames = [Frame(nb=i) for i in range(n)]
+        else:
+            raise ValueError("an info Namespace or the number of frames must be given")
         if img_dir is not None:
             self.set_frame_paths(img_dir)
 
-    def create_instance(self, frame, id, bounding_box=None, coordinates=None, conf=None):
+    def create_instance(self, frame, kwargs):
         """
-        Create a new instance and append it to the appropriate frame
-        :param frame: int: frame number
-        :param id: int: instance identification number
-        :param bounding_box: list: [bb_left, bb_top, bb_width, bb_height]
-        :param coordinates: list: [x, y, z]
-        :param conf: detection confidence (-1 if unknown)
-        :return: None
+        :param frame:
+        :param id:
+        :param kwargs:
+        :return:
         """
-        self.frames[frame].create_instance(id,
-                                           bounding_box=bounding_box,
-                                           coordinates=coordinates,
-                                           conf=conf)
+        self.frames[frame].create_instance(**kwargs)
 
     def add_instance(self, frame, instance):
         self.frames[frame].add_instance(instance)
 
-    def get_scene(self, frame, width=1, scale=1, draw=False):
+    def get_image(self, frame, width=1, scale=1, draw=False):
         """
         Display a particular frame
         :param frame: int: index to a frame in self.frames
@@ -161,7 +156,7 @@ class Sequence(object):
         :param draw: bool: whether or not to draw instances
         :return: np.array: image
         """
-        return self.frames[frame].get_scene(width=width, scale=scale, draw=draw)
+        return self.frames[frame].get_image(width=width, scale=scale, draw=draw)
 
     def get_n_frames(self):
         """
@@ -169,19 +164,13 @@ class Sequence(object):
         """
         return len(self.frames)
 
-    def get_instances(self, frame=None):
+    def get_all_instances(self, frame=None, id=None):
         """
-        :param frame: int: index to a frame in self.frames
-        :return: list: instances
+        :param frame:
+        :param id:
+        :return:
         """
-        if frame is None:
-            instances = []
-            for frame in self.frames:
-                for instance in frame.get_instances():
-                    instances.append(instance)
-            return instances
-        else:
-            return self.frames[frame].get_instances()
+        return [instance for frame in self.frames for instance in frame.instances]
 
     def get_n_instances(self, frame=None, id=None):
         """
@@ -190,18 +179,13 @@ class Sequence(object):
         :return: int: the number of instances in the frame
         """
         if frame is not None and id is not None:
-            raise ValueError("Can not return n_instances for a given frame and id")
+            return sum([1 for instance in self.frames[frame] if instance.id == id])
         if id is not None:
-            count = 0
-            for frame in self.frames:
-                for instance in frame.get_instances():
-                    if instance.id == id:
-                        count += 1
-            return count
+            return sum([1 for frame in self.frames for instance in frame.instances if instance.id == id])
         elif frame is not None:
             return self.frames[frame].get_n_instances()
         else:
-            return sum([f.get_n_instances() for f in self.frames])
+            return sum([frame.get_n_instances() for frame in self.frames])
 
     def get_target(self, id):
         """
@@ -312,7 +296,7 @@ class Sequence(object):
         clock = Clock(self.info.frameRate)
         for frame in self.frames:
             image = frame.get_frame(width=width, scale=scale, draw=draw)
-            cv2.imshow(self.name, image)
+            cv2.imshow(self.info.name, image)
             cv2.waitKey(1)
             clock.toc()
 

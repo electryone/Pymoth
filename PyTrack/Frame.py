@@ -16,7 +16,7 @@ class Frame(object):
         self.img_path = img_path
         self.instances = []
 
-    def get_frame(self, width=1, scale=1, draw=False, shape=None):
+    def get_image(self, width=1, scale=1, draw=False, shape=None):
         """
         Display a particular frame
         :param width: int: line width
@@ -43,16 +43,13 @@ class Frame(object):
 
     def get_ids(self):
         """
-        :return:
+        :return: list: id values for each instance in the frame
         """
-        ids = []
-        for instance in self.instances:
-            ids.append(instance.id)
-        return ids
+        return [instance.id for instance in self.instances]
 
     def get_boxes(self):
         """
-        :return:
+        :return: np.array: bounding boxes from a frame (x1, y1, w, h)
         """
         bounding_boxes = np.empty((len(self.instances), 4))
         for i, instance in enumerate(self.instances):
@@ -61,7 +58,7 @@ class Frame(object):
 
     def get_xywh(self):
         """
-        :return:
+        :return: np.array: xywh values from a frame (x_centre, y_centre, w, h)
         """
         xywh = np.empty((len(self.instances), 4))
         for i, instance in enumerate(self.instances):
@@ -70,7 +67,7 @@ class Frame(object):
 
     def get_rect(self):
         """
-        :return:
+        :return: np.array: rectangles from a frame (x1, y1, x2, y2)
         """
         rect = np.empty((len(self.instances), 4))
         for i, instance in enumerate(self.instances):
@@ -79,12 +76,9 @@ class Frame(object):
 
     def get_conf(self):
         """
-        :return:
+        :return: list: confidence values for each instance in the frame
         """
-        conf = np.empty((len(self.instances), 1))
-        for i, instance in enumerate(self.instances):
-            conf[i, :] = instance.conf
-        return conf
+        return [instance.conf for instance in self.instances]
 
     def get_appearances(self, shape=None):
         """
@@ -94,7 +88,7 @@ class Frame(object):
         """
         appearances = []
         frame = cv2.imread(self.img_path)
-        for instance in self.get_instances():
+        for instance in self.instances:
             rect = instance.get_rect()
             rect[rect < 0] = 0
             x0, y0, x1, y1 = rect
@@ -112,21 +106,13 @@ class Frame(object):
         """
         return len(self.instances)
 
-    def create_instance(self, id, bounding_box=None, coordinates=None, conf=None):
+    def create_instance(self, kwargs):
         """
-        Append an instance to self.instances
-        :param id: int: object unique id
-        :param bounding_box: np.array: bounding box of instance
-        :param coordinates: np.array: world coordinates of instance
-        :param conf: int: detection confidence
-        :return: None
+        Create an instance and append the frame
+        :param kwargs:
+        :return:
         """
-        self.add_instance(Instance(id=id,
-                                   img_path=self.img_path,
-                                   frame=self.nb,
-                                   bounding_box=bounding_box,
-                                   coordinates=coordinates,
-                                   conf=conf))
+        self.add_instance(Instance(**kwargs))
 
     def add_instance(self, instance):
         """
