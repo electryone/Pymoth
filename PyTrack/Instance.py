@@ -17,17 +17,14 @@ from PyTrack.utils import box2xywh
 
 class Instance(object):
 
-    def __init__(self, id=-1, img_path=None, frame=None, bounding_box=None, coordinates=None, conf=None):
+    def __init__(self, id=-1, img_path=None, frame_index=None, bounding_box=None, coordinates=None, conf=None):
         self.id = id                                        # Identification number of instance
-        self.frame = frame
+        self.frame_index = frame_index
         self.img_path = img_path
         self.bounding_box = bounding_box                    # Bounding box of instance
-        self.rect = None
-        self.xywh = None
         self.conf = conf
         self.coordinates = coordinates                      # World coordinates of instance
         self.mode = None                                    # Either "bounding_box" or "world_coordinates"
-        self.appearance = None
         if bounding_box is not None:
             self.__set_bounding_box()                       # Set mode and cast bounding_box as np array
         if coordinates is not None:
@@ -44,8 +41,6 @@ class Instance(object):
         :return: None
         """
         self.bounding_box = np.asarray(self.bounding_box)
-        self.rect = box2rect(self.bounding_box)
-        self.xywh = box2xywh(self.bounding_box)
         self.mode = "bounding_box"
 
     def __set_coordinates(self):
@@ -56,9 +51,70 @@ class Instance(object):
         self.coordinates = np.asarray(self.coordinates)
         self.mode = "world_coordinates"
 
+    def get_box(self):
+        """
+        :return:
+        """
+        return self.bounding_box
+
+    def get_rect(self):
+        """
+        :return:
+        """
+        return box2rect(self.bounding_box)
+
+    def get_xywh(self):
+        """
+        :return:
+        """
+        return box2xywh(self.bounding_box)
+
+    def get_conf(self):
+        """
+        :return:
+        """
+        return self.conf
+
+    def get_id(self):
+        """
+        :return:
+        """
+        return self.id
+
+    def get_image_path(self):
+        """
+        :return:
+        """
+        return self.img_path
+
+    def get_frame_index(self):
+        """
+        :return:
+        """
+        return self.frame_index
+
+    def get_mode(self):
+        """
+        :return:
+        """
+        return self.mode
+
+    def get_color(self):
+        """
+        :return:
+        """
+        return self.color
+
+    def set_color(self, color):
+        """
+        :param color:
+        :return:
+        """
+        self.color = color
+
     def get_appearance(self, shape=None):
         if self.mode == "bounding_box":
-            rect = self.rect
+            rect = self.get_rect()
             rect[rect < 0] = 0
             x0, y0, x1, y1 = rect
             if shape is None:
@@ -70,13 +126,14 @@ class Instance(object):
 
     def draw(self, image, width=1, scale=1, show_ids=False):
         """
-        :param image: np.array: target image
-        :param width: int: line width
-        :param scale: int: drawing scale factor
-        :return: np.array: image with instance bounding_box drawn
+        :param image:
+        :param width:
+        :param scale:
+        :param show_ids:
+        :return:
         """
         if self.mode == "bounding_box":
-            rect = self.rect * scale
+            rect = self.get_rect() * scale
             x1, y1, x2, y2 = rect.astype(int)
             image = cv2.rectangle(image, pt1=(x1, y1), pt2=(x2, y2), color=self.color, thickness=width)
             if show_ids:

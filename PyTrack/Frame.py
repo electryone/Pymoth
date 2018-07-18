@@ -7,26 +7,44 @@ import time
 from .Instance import Instance
 from .utils import resize
 from .utils import box2xywh
+from .utils import box2rect
 
 
 class Frame(object):
 
-    def __init__(self, nb=None, img_path=None):
-        self.nb = nb
+    def __init__(self, index=None, img_path=None):
+        self.index = index
         self.img_path = img_path
         self.instances = []
 
-    def get_image(self, width=1, scale=1, draw=False, shape=None):
+    def create_instance(self, kwargs):
         """
-        Display a particular frame
-        :param width: int: line width
-        :param scale: int: scale factor
-        :param draw: bool: scalar whether to draw instances or not
-        :param shape: tuple: shape of output image
-        :return: np.array: image
+        Create an instance and append the frame
+        :param kwargs:
+        :return:
         """
-        if draw is True and shape is not None:
-            raise NotImplementedError("Drawing of frames with user selected image shape is not yet implemented")
+        kwargs["img_path"] = self.img_path
+        kwargs["frame_index"] = self.index
+        self.add_instance(Instance(**kwargs))
+
+    def add_instance(self, instance):
+        """
+        Appends an instance to self.instances
+        :param instance: Instance: an instance object
+        :return: None
+        """
+        instance.img_path = self.img_path
+        instance.frame_index = self.index
+        self.instances.append(instance)
+
+    def get_image(self, width=1, scale=1, draw=False, show_ids=False):
+        """
+        :param width:
+        :param scale:
+        :param draw:
+        :param show_ids:
+        :return:
+        """
         if self.img_path is None:
             raise ValueError("Frame image path not set")
         image = cv2.imread(self.img_path)
@@ -34,12 +52,16 @@ class Frame(object):
             raise FileNotFoundError("cv2.imread(%s) returned None, check %s" % (self.img_path, self.img_path))
         if scale is not 1:
             image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
-        if shape is not None:
-            image = resize(image, shape)
         if draw:
             for instance in self.instances:
-                image = instance.draw(image, width=width, scale=scale)
+                image = instance.draw(image, width=width, scale=scale, show_ids=show_ids)
         return image
+
+    def get_n_instances(self):
+        """
+        :return: int: the number of instances in the frame
+        """
+        return len(self.instances)
 
     def get_ids(self):
         """
@@ -47,32 +69,32 @@ class Frame(object):
         """
         return [instance.id for instance in self.instances]
 
+    def get_n_ids(self):
+        """
+        :return: int: the number of target in the frame or sequence
+        """
+        return len(np.unique(self.get_ids()))
+
     def get_boxes(self):
         """
         :return: np.array: bounding boxes from a frame (x1, y1, w, h)
         """
-        bounding_boxes = np.empty((len(self.instances), 4))
+        bounding_boxes = np.empty((self.get_n_instances(), 4))
         for i, instance in enumerate(self.instances):
-            bounding_boxes[i, :] = instance.bounding_box
+            bounding_boxes[i] = instance.bounding_box
         return bounding_boxes
 
     def get_xywh(self):
         """
         :return: np.array: xywh values from a frame (x_centre, y_centre, w, h)
         """
-        xywh = np.empty((len(self.instances), 4))
-        for i, instance in enumerate(self.instances):
-            xywh[i, :] = instance.xywh
-        return xywh
+        return box2xywh(self.get_boxes())
 
-    def get_rect(self):
+    def get_rects(self):
         """
         :return: np.array: rectangles from a frame (x1, y1, x2, y2)
         """
-        rect = np.empty((len(self.instances), 4))
-        for i, instance in enumerate(self.instances):
-            rect[i, :] = instance.rect
-        return rect
+        return box2rect(self.get_boxes())
 
     def get_conf(self):
         """
@@ -86,38 +108,15 @@ class Frame(object):
         :param shape:
         :return:
         """
-        appearances = []
-        frame = cv2.imread(self.img_path)
-        for instance in self.instances:
-            rect = instance.get_rect()
-            rect[rect < 0] = 0
-            x0, y0, x1, y1 = rect
-            if shape is None:
-                appearances.append(frame.copy()[y0:y1, x0:x1])
-            else:
-                appearances.append(resize(frame.copy()[y0:y1, x0:x1], shape))
-        if shape is not None:
-            appearances = np.stack(appearances)
+        image = cv2.imread(self.img_path)
+        rects = self.get_rects().astype(int)
+        rects[rects < 0] = 0
+        if shape is None:
+            appearances = []
+            for x0, y0, x1, y1 in rects:
+                appearances.append(image[y0:y1, x0:x1])
+        else:
+            appearances = np.empty((tuple([self.get_n_instances()] + list(shape))), dtype=np.uint8)
+            for i, (x0, y0, x1, y1) in enumerate(rects):
+                appearances[i] = resize(image[y0:y1, x0:x1], shape)
         return appearances
-
-    def get_n_instances(self):
-        """
-        :return: int: the number of instances in the frame
-        """
-        return len(self.instances)
-
-    def create_instance(self, kwargs):
-        """
-        Create an instance and append the frame
-        :param kwargs:
-        :return:
-        """
-        self.add_instance(Instance(**kwargs))
-
-    def add_instance(self, instance):
-        """
-        Appends an instance to self.instances
-        :param instance: Instance: an instance object
-        :return: None
-        """
-        self.instances.append(instance)
