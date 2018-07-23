@@ -6,15 +6,16 @@ A Sequence object contains a list of frames, each frame has a list of instances 
 
 import os
 import cv2
-from itertools import count
+import copy
 import numpy as np
+from itertools import count
 from keras.utils.generic_utils import Progbar
-import time
 
 from .Frame import Frame
 from .Clock import Clock
 from .utils import convert
-from .utils import pairwise
+from .utils import box2rect
+from .utils import box2xywh
 
 # MOTChallenge variables and format
 file_format = {"frame": 0,
@@ -30,6 +31,7 @@ class Sequence(object):
 
     def __init__(self):
         self.info = None
+        self.img_dir = None
         self.frames = []
 
     def load_frames(self, img_dir, label_paths, info):
@@ -53,7 +55,7 @@ class Sequence(object):
 
     def init_frames(self, info=None, n=None, img_dir=None):
         if info is not None:
-            self.info = info
+            self.info = copy.deepcopy(info)
             self.frames = [Frame(index=i) for i in range(self.info.seqLength)]
         elif n is not None:
             self.frames = [Frame(index=i) for i in range(n)]
@@ -70,10 +72,11 @@ class Sequence(object):
         :param img_dir:
         :return:
         """
-        frame_paths = os.listdir(img_dir)
+        self.img_dir = img_dir
+        frame_paths = os.listdir(self.img_dir)
         for path in frame_paths:
             i = int(path.split(".")[0]) - 1
-            self.set_frame_path(i, "%s/%s" % (img_dir, path))
+            self.set_frame_path(i, "%s/%s" % (self.img_dir, path))
 
     def set_frame_path(self, frame, path):
         """
@@ -116,89 +119,175 @@ class Sequence(object):
             images[i] = frame.get_image(width=width, scale=scale, draw=draw, show_ids=show_ids)
         return images
 
+    def get_frame(self, frame):
+        """
+        :return:
+        """
+        return self.frames[frame]
+
+    def get_frames(self):
+        """
+        :return:
+        """
+        return self.frames
+
     def get_n_frames(self):
         """
         :return: int: the number of frames in the sequence
         """
         return len(self.frames)
 
-    def get_n_ids(self):
+    def get_n_instances(self, frame=None, id=None):
+        """
+        :param frame:
+        :param id:
+        :return:
+        """
+        if frame is None:
+            if id is None:
+                return len([1 for frame in self.frames for _ in frame.instances])
+            else:
+                return len([1 for frame in self.frames for instance in frame.instances if instance.id == id])
+        else:
+            if not 0 <= frame < self.get_n_frames():
+                return 0
+            if id is None:
+                return len([1 for _ in self.frames[frame].instances])
+            else:
+                return len([1 for instance in self.frames[frame].instances if instance.id == id])
+
+    def get_instances(self, frame=None, id=None):
+        """
+        :param frame:
+        :param id:
+        :return:
+        """
+        if frame is None:
+            if id is None:
+                return [instance for frame in self.frames for instance in frame.instances]
+            else:
+                return [instance for frame in self.frames for instance in frame.instances if instance.id == id]
+        else:
+            if not 0 <= frame < self.get_n_frames():
+                return []
+            if id is None:
+                return [instance for instance in self.frames[frame].instances]
+            else:
+                return [instance for instance in self.frames[frame] if instance.id == id]
+
+    def get_ids(self, frame=None):
+        """
+        :return:
+        """
+        if frame is None:
+            return [instance.id for frame in self.frames for instance in frame.instances]
+        else:
+            return [instance.id for instance in self.frames[frame].instances]
+
+    def get_n_ids(self, frame=None):
         """
         :return: int: the number of target in the frame or sequence
         """
-        return len(np.unique(self.get_ids()))
+        ids = np.unique(self.get_ids(frame=frame))
+        return len(np.delete(ids, np.where(ids == -1)))
 
-    def get_n_instances(self, id=None):
-        """
-        :param id: int: the id number of a target to be counted
-        :return: int: the number of instances in the frame
-        """
-        if id is None:
-            return len([1 for frame in self.frames for _ in frame.instances])
-        else:
-            return len([1 for frame in self.frames for instance in frame.instances if instance.id == id])
-
-    def get_instances(self, id=None):
+    def get_unique_ids(self):
         """
         :return:
         """
-        if id is None:
-            return [instance for frame in self.frames for instance in frame.instances]
-        else:
-            return [instance for frame in self.frames for instance in frame.instances if instance.id == id]
+        return np.unique(self.get_ids())
 
-    def get_ids(self):
+    def get_boxes(self, frame=None, id=None):
         """
-        :return:
-        """
-        return [instance.id for frame in self.frames for instance in frame.instances]
-
-    def get_boxes(self, id=None):
-        """
+        :param frame:
         :param id:
         :return:
         """
-        boxes = np.empty((self.get_n_instances(id=id), 4))
-        for i, instance in enumerate(self.get_instances(id=id)):
-            boxes[i] = instance.bounding_box
+        boxes = np.empty((self.get_n_instances(frame=frame, id=id), 4))
+        for i, instance in enumerate(self.get_instances(frame=frame, id=id)):
+            boxes[i] = instance.get_box()
         return boxes
 
-    def get_rects(self, id=None):
+    def get_rects(self, frame=None, id=None):
         """
+        :param frame:
         :param id:
         :return:
         """
-        rects = np.empty((self.get_n_instances(id=id), 4))
-        for i, instance in enumerate(self.get_instances(id=id)):
-            rects[i] = instance.rect
-        return rects
+        return box2rect(self.get_boxes(frame=frame, id=id))
 
-    def get_xywh(self, id=None):
+    def get_xywh(self, frame=None, id=None):
         """
+        :param frame:
         :param id:
         :return:
         """
-        xywh = np.empty((self.get_n_instances(id=id), 4))
-        for i, instance in enumerate(self.get_instances(id=id)):
-            xywh[i] = instance.xywh
-        return xywh
+        return box2xywh(self.get_boxes(frame=frame, id=id))
 
-    def get_conf(self, id=None):
+    def get_conf(self, frame=None, id=None):
         """
+        :param frame:
         :param id:
         :return:
         """
-        if id is None:
-            return [instance.conf for frame in self.frames for instance in frame.instances]
+        if frame is None:
+            if id is None:
+                return [instance.conf for frame in self.frames for instance in frame.instances]
+            else:
+                return [instance.conf for frame in self.frames for instance in frame.instances if instance.id == id]
         else:
-            return [instance.conf for frame in self.frames for instance in frame.instances if instance.id == id]
+            if id is None:
+                return [instance.conf for instance in self.frames[frame].instances]
+            else:
+                return [instance.conf for instance in self.frames[frame].instances if instance.id == id]
 
-    def get_appearances(self, id=None, shape=None):
+    def get_appearances_by_id(self, shape=None):
+        """
+        :param shape:
+        :return:
+        """
+        print("Getting the appearances from %s frames" % self.get_n_frames())
+        if shape is None:
+            appearances = [[] for _ in self.get_unique_ids()]
+            progress_bar = Progbar(self.get_n_frames(), width=30, verbose=1, interval=1)
+            for i, frame in enumerate(self.frames):
+                for appearance, id in zip(frame.get_appearances(shape=shape), frame.get_ids()):
+                    appearances[id - 1].append(appearance)
+                progress_bar.update(i)
+        else:
+            appearances = [np.empty(tuple([self.get_n_instances(id=id)] + list(shape)), dtype=np.uint8)
+                           for id in self.get_unique_ids()]
+            indexes = [count() for _ in self.get_unique_ids()]
+            progress_bar = Progbar(self.get_n_frames(), width=30, verbose=1, interval=1)
+            for i, frame in enumerate(self.frames):
+                for appearance, id in zip(frame.get_appearances(shape=shape), frame.get_ids()):
+                    appearances[id - 1][next(indexes[id - 1])] = appearance
+                progress_bar.update(i)
+        print("\n")
+        return appearances
+
+    def get_appearances(self, frame=None, id=None, shape=None):
         """
         :param id:
         :param shape:
         :return:
         """
+        if frame is None:
+            return self.__from_all_frames(id=id, shape=shape)
+        if frame is not None:
+            return self.__from_frame(frame, id=id, shape=shape)
+
+    def __from_frame(self, frame, id=None, shape=None):
+        if not 0 <= frame < self.get_n_frames():
+            if shape is None:
+                return []
+            else:
+                return np.empty((tuple([0] + list(shape))))
+        else:
+            return self.frames[frame].get_appearances(id=id, shape=shape)
+
+    def __from_all_frames(self, id=None, shape=None):
+        print("Getting the appearances from %s frames" % self.get_n_frames())
         if shape is None:
             appearances = []
             if id is None:
@@ -230,50 +319,28 @@ class Sequence(object):
         print("\n")
         return appearances
 
-    def show(self, scale=1, width=1, draw=False, show_id=False):
+    def show(self, frame=None, scale=1, width=1, draw=False, show_ids=False, restrict_fps=True, states=None):
         """
-        :return: None
-        """
-        clock = Clock(self.info.frameRate)
-        for frame in self.frames:
-            image = frame.get_frame(width=width, scale=scale, draw=draw, show_id=show_id)
-            cv2.imshow(self.info.name, image)
-            cv2.waitKey(1)
-            clock.toc()
-
-    def get_appearance_pairs(self, shape=(128, 128, 3), seed=None):
-        """
+        :param frame:
+        :param scale:
+        :param width:
+        :param draw:
+        :param show_ids:
+        :param restrict_fps:
         :return:
         """
-        if seed is not None:
-            np.random.seed(seed)
-        targets = self.get_appearances(shape=shape)
-        n_targets = len(targets)
-        x = []
-        y = []
-        print("Generating positive/negative pairs from %s targets" % n_targets)
-        progress_bar = Progbar(n_targets, width=30, verbose=1, interval=1)
-        for i, target in enumerate(targets):
-            non_target = targets.copy()
-            del non_target[i]
-            non_target = np.concatenate(non_target, axis=0)
-            n = target.shape[0] - 1
-            x_t = np.empty(tuple([2 * n, 2] + list(shape)), dtype=np.uint8)
-            y_t = np.empty((2 * n), dtype=np.uint8)
-            for j, (target_0, target_1) in enumerate(pairwise(target)):
-                x_t[j, 0] = target_0
-                x_t[j, 1] = target_1
-                y_t[j] = 1
-                x_t[j + n, 0] = target_0
-                x_t[j + n, 1] = non_target[np.random.randint(0, non_target.shape[0])]
-                y_t[j + n] = 0
-            x.append(x_t)
-            y.append(y_t)
-            progress_bar.update(i)
-        print("\n")
-        x = np.concatenate(x, axis=0)
-        y = np.concatenate(y, axis=0)
-        return x, y
+        if frame is None:
+            clock = Clock(self.info.frameRate)
+            for frame in self.frames:
+                image = frame.get_image(width=width, scale=scale, draw=draw, show_ids=show_ids, states=states)
+                cv2.imshow(self.info.name, image)
+                cv2.waitKey(1)
+                if restrict_fps:
+                    clock.toc()
+        else:
+            image = self.frames[frame].get_image(width=width, scale=scale, draw=draw, show_ids=show_ids, states=states)
+            cv2.imshow(self.info.name, image)
+            cv2.waitKey(1)
 
     @staticmethod
     def __extract_data(line):

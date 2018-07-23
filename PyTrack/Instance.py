@@ -17,7 +17,7 @@ from PyTrack.utils import box2xywh
 
 class Instance(object):
 
-    def __init__(self, id=-1, img_path=None, frame_index=None, bounding_box=None, coordinates=None, conf=None):
+    def __init__(self, id=-1, img_path=None, frame_index=None, bounding_box=None, coordinates=None, conf=None, state=None):
         self.id = id                                        # Identification number of instance
         self.frame_index = frame_index
         self.img_path = img_path
@@ -25,6 +25,7 @@ class Instance(object):
         self.conf = conf
         self.coordinates = coordinates                      # World coordinates of instance
         self.mode = None                                    # Either "bounding_box" or "world_coordinates"
+        self.state = state
         if bounding_box is not None:
             self.__set_bounding_box()                       # Set mode and cast bounding_box as np array
         if coordinates is not None:
@@ -50,6 +51,12 @@ class Instance(object):
         """
         self.coordinates = np.asarray(self.coordinates)
         self.mode = "world_coordinates"
+
+    def get_state(self):
+        """
+        :return:
+        """
+        return self.state
 
     def get_box(self):
         """

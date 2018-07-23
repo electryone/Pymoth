@@ -2,9 +2,21 @@
 
 import cv2
 import numpy as np
-from itertools import tee
 
 from .Namespace import Namespace
+
+
+def pythagoras(x, axis=None):
+    return np.sqrt(np.sum(np.square(x), axis=axis))
+
+
+def euclidean_distance(observed, predicted):
+    """
+    :param observed: 2D array of observed states [object][state]
+    :param predicted: 2D array of predicted states [object][state]
+    :return: euclidean distance matrix[state][predicted]
+    """
+    return pythagoras(observed[:, np.newaxis, :] - predicted[np.newaxis, :, :], axis=2)
 
 
 def convert(string):
@@ -19,17 +31,6 @@ def convert(string):
             return float(string)
         except ValueError:
             return "%s" % string
-
-
-def pairwise(iterable):
-    """
-    :param iterable:
-    :return:
-    """
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = tee(iterable)
-    next(b, None)
-    return zip(a, b)
 
 
 def load_info(file_path):
@@ -149,12 +150,35 @@ def box2xywh(box):
     :param box:
     :return:
     """
-    box = np.empty_like(box.T)
-    box[0] = box.T[0] + box.T[2] / 2
-    box[1] = box.T[1] + box.T[3] / 2
-    box[2] = box.T[2]
-    box[3] = box.T[3]
-    return box.T
+    xywh = np.empty_like(box.T)
+    xywh[0] = box.T[0] + box.T[2] / 2
+    xywh[1] = box.T[1] + box.T[3] / 2
+    xywh[2] = box.T[2]
+    xywh[3] = box.T[3]
+    return xywh.T
+
+
+def greedy(observed, predicted, threshold=np.inf):
+    """
+    :param observed:
+    :param predicted:
+    :param threshold:
+    :return:
+    """
+    distance = euclidean_distance(observed, predicted)
+    if not np.any(distance):
+        matches = np.array([])
+        untracked = np.arange(observed.shape[0])
+        unobserved = np.arange(predicted.shape[0])
+    else:
+        mask_0 = distance < threshold                               # Distance matrix mask for threshold
+        mask_1 = distance == np.min(distance, axis=0)               # Distance matrix mask track -> observation
+        mask_2 = distance.T == np.min(distance.T, axis=0)           # Distance matrix mask observation -> track
+        association = mask_0 * mask_1 * mask_2.T                    # Combined masks for association matrix
+        matches = np.argwhere(association == 1)                     # Indexes of matching pairs
+        untracked = np.argwhere(association.any(axis=1) == 0)       # Indexes of untracked observations
+        unobserved = np.argwhere(association.any(axis=0) == 0)      # Indexes of unobserved tracks
+    return matches, untracked.flatten(), unobserved.flatten()
 
 
 def nms(array, by_row=False, by_col=True):
@@ -220,5 +244,50 @@ def create_pairs(x, digit_indices, num_classes):
             pairs += [[x[z1], x[z2]]]
             labels += [1, 0]
     return np.array(pairs), np.array(labels)
+
+
+def get_app_matrix(app_1, app_2):
+    """
+    :param app_1:
+    :param app_2:
+    :return:
+    """
+    n_app_1 = app_1.shape[0]
+    n_app_2 = app_2.shape[0]
+    shape = tuple([n_app_1, n_app_2, 2] + list(app_1.shape[1:]))
+    app_mat = np.empty(shape, dtype=np.uint8)
+    for i in range(n_app_1):
+        for j in range(n_app_2):
+            app_mat[i, j, 0] = app_1[i]
+            app_mat[i, j, 1] = app_2[j]
+    return app_mat
+
+
+def compress(matrix):
+    """
+    :param matrix:
+    :return:
+    """
+    shape = list(matrix.shape)
+    n = shape[0] * shape[1]
+    shape = shape[2:]
+    shape = tuple([n] + shape)
+    matrix.shape = shape
+    return matrix
+
+
+def expand(matrix):
+    """
+    :param matrix:
+    :return:
+    """
+    shape = list(matrix.shape)
+    n = int(np.sqrt(shape[0]))
+    shape = tuple([n, n] + shape[1:])
+    matrix.shape = shape
+    return matrix
+
+
+
 
 

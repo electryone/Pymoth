@@ -37,12 +37,13 @@ class Frame(object):
         instance.frame_index = self.index
         self.instances.append(instance)
 
-    def get_image(self, width=1, scale=1, draw=False, show_ids=False):
+    def get_image(self, width=1, scale=1, draw=False, show_ids=False, states=None):
         """
         :param width:
         :param scale:
         :param draw:
         :param show_ids:
+        :param states:
         :return:
         """
         if self.img_path is None:
@@ -53,15 +54,32 @@ class Frame(object):
         if scale is not 1:
             image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         if draw:
-            for instance in self.instances:
+            for instance in self.get_instances(states=states):
                 image = instance.draw(image, width=width, scale=scale, show_ids=show_ids)
         return image
 
-    def get_n_instances(self):
+    def get_n_instances(self, id=None):
         """
         :return: int: the number of instances in the frame
         """
-        return len(self.instances)
+        if id is None:
+            return len(self.instances)
+        else:
+            return len([1 for instance in self.instances if instance.get_id() == id])
+
+    def get_instances(self, id=None, states=None):
+        """
+        :param id:
+        :return:
+        """
+        if id is None and states is None:
+            return self.instances
+        elif id is None:
+            return [instance for instance in self.instances if instance.get_state() in states]
+        elif states is None:
+            return [instance for instance in self.instances if instance.get_id() == id]
+        else:
+            return [instance for instance in self.instances if instance.get_id() == id and instance.get_state() in states]
 
     def get_ids(self):
         """
@@ -75,26 +93,29 @@ class Frame(object):
         """
         return len(np.unique(self.get_ids()))
 
-    def get_boxes(self):
+    def get_boxes(self, id=None):
         """
-        :return: np.array: bounding boxes from a frame (x1, y1, w, h)
+        :param id:
+        :return:
         """
-        bounding_boxes = np.empty((self.get_n_instances(), 4))
-        for i, instance in enumerate(self.instances):
+        bounding_boxes = np.empty((self.get_n_instances(id=id), 4))
+        for i, instance in enumerate(self.get_instances(id=id)):
             bounding_boxes[i] = instance.bounding_box
         return bounding_boxes
 
-    def get_xywh(self):
+    def get_xywh(self, id=None):
         """
-        :return: np.array: xywh values from a frame (x_centre, y_centre, w, h)
+        :param id:
+        :return:
         """
-        return box2xywh(self.get_boxes())
+        return box2xywh(self.get_boxes(id=id))
 
-    def get_rects(self):
+    def get_rects(self, id=None):
         """
-        :return: np.array: rectangles from a frame (x1, y1, x2, y2)
+        :param id:
+        :return:
         """
-        return box2rect(self.get_boxes())
+        return box2rect(self.get_boxes(id=id))
 
     def get_conf(self):
         """
@@ -102,21 +123,21 @@ class Frame(object):
         """
         return [instance.conf for instance in self.instances]
 
-    def get_appearances(self, shape=None):
+    def get_appearances(self, id=None, shape=None):
         """
-        Loads frame into memory, the frame is then cropped for each instance bounding box
+        :param id:
         :param shape:
         :return:
         """
         image = cv2.imread(self.img_path)
-        rects = self.get_rects().astype(int)
+        rects = self.get_rects(id=id).astype(int)
         rects[rects < 0] = 0
         if shape is None:
             appearances = []
             for x0, y0, x1, y1 in rects:
                 appearances.append(image[y0:y1, x0:x1])
         else:
-            appearances = np.empty((tuple([self.get_n_instances()] + list(shape))), dtype=np.uint8)
+            appearances = np.empty((tuple([self.get_n_instances(id=id)] + list(shape))), dtype=np.uint8)
             for i, (x0, y0, x1, y1) in enumerate(rects):
                 appearances[i] = resize(image[y0:y1, x0:x1], shape)
         return appearances
