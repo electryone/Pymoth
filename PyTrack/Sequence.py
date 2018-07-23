@@ -45,7 +45,7 @@ class Sequence(object):
         with open(label_paths, "r") as file:
             for line in file:
                 data = self.__extract_data(line)
-                kwargs = {"id": data["id"],
+                kwargs = {"id_number": data["id"],
                           "bounding_box": (data["bb_left"],
                                            data["bb_top"],
                                            data["bb_width"],
