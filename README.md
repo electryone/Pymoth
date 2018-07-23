@@ -99,29 +99,29 @@ An object to store instances from single frame
 
 **Instance(id_number=-1, img_path=None, frame_index=None, bounding_box=None, coordinates=None, conf=None, state=None, color=None)**
 
-- :param id_number: int: the unique identification number of the instance
-- :param img_path: str: the path to the image that contains the instance
-- :param frame_index: int: the index number of the frame that contains the instance
-- :param bounding_box: np.array(1, 4): the bounding box of the instance (left, top, width, height)
-- :param coordinates: np.array(1, 3): the world coordinates of the instance (...)
-- :param conf: int: the detection confidence of the instance (default = -1)
-- :param state: str: the human-readable state of the instance
-- :param color: tuple: the color used when drawing the instance bounding box
+- id_number: int: the unique identification number of the instance
+- img_path: str: the path to the image that contains the instance
+- frame_index: int: the index number of the frame that contains the instance
+- bounding_box: np.array(1, 4): the bounding box of the instance (left, top, width, height)
+- coordinates: np.array(1, 3): the world coordinates of the instance (...)
+- conf: int: the detection confidence of the instance (default = -1)
+- state: str: the human-readable state of the instance
+- color: tuple: the color used when drawing the instance bounding box
 
 ### Attributes
 
 **Private**
-- self._bounding_box:  np.array(1, 4): the bounding box of the instance (left, top, width, height)
-- self._coordinates: np.array(1, 3): the world coordinates of the instance (...)
-- self._id: int: the unique identification number of the instance
+- _bounding_box:  np.array(1, 4): the bounding box of the instance (left, top, width, height)
+- _coordinates: np.array(1, 3): the world coordinates of the instance (...)
+- _id: int: the unique identification number of the instance
 
 **Public**
-- self.color: tuple: the color used when drawing the instance bounding box
-- self.conf: int: the detection confidence of the instance (default = -1)
-- self.frame_index:  int: the index number of the frame that contains the instance
-- self.img_path: str: the path to the image that contains the instance
-- self.mode: str: human readable description of the instance mode ('bounding_box' or 'world_coordinates')
-- self.state: str: the human-readable state of the instance
+- color: tuple: the color used when drawing the instance bounding box
+- conf: int: the detection confidence of the instance (default = -1)
+- frame_index:  int: the index number of the frame that contains the instance
+- img_path: str: the path to the image that contains the instance
+- mode: str: human readable description of the instance mode ('bounding_box' or 'world_coordinates')
+- state: str: the human-readable state of the instance
 
 ### Methods
 
@@ -133,7 +133,7 @@ An object to store instances from single frame
 
 **set_id(id_number)**
 > Sets the instance id. If the instance color is not already set, sets the instance color based on the instance id number
-> - param id_number: int: the unique identification number of the instance
+> - id_number: int: the unique identification number of the instance
 
 **get_bounding_box()**
 > Returns np.array: the instance bounding box (left, top, width, height)
@@ -152,13 +152,13 @@ An object to store instances from single frame
 
 **get_appearance(shape=None, keep_aspect=True)**
 > Returns: np.array: the image of the instance
-> - param shape: the required shape of the output image
-> - param keep_aspect: bool: whether to keep the object aspect ratio or not when resizing
+> - shape: the required shape of the output image
+> - keep_aspect: bool: whether to keep the object aspect ratio or not when resizing
 
 
 **draw(image, width=1, scale=1, show_ids=False)**
 > Returns: np.array: the original image with the instance drawn
-> - param image: np.array: the image on which to draw the instance
-> - param width: int: the line width of the instance bounding box
-> - param scale: int: the scale of the drawing
-> - param show_ids: bool: whether or not to draw the instance id number
+> - image: np.array: the image on which to draw the instance
+> - width: int: the line width of the instance bounding box
+> - scale: int: the scale of the drawing
+> - show_ids: bool: whether or not to draw the instance id number
