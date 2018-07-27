@@ -4,8 +4,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-from . import Sequence
-from .utils import load_info
+from PyTrack import Sequence
+from PyTrack.utils import load_info
 
 
 class PyTrack(object):

@@ -11,11 +11,11 @@ import numpy as np
 from itertools import count
 from keras.utils.generic_utils import Progbar
 
-from .Frame import Frame
-from .Clock import Clock
-from .utils import convert
-from .utils import box2rect
-from .utils import box2xywh
+from PyTrack.Frame import Frame
+from PyTrack.Clock import Clock
+from PyTrack.utils import convert
+from PyTrack.utils import box2rect
+from PyTrack.utils import box2xywh
 
 # MOTChallenge variables and format
 file_format = {"frame": 0,
@@ -327,6 +327,7 @@ class Sequence(object):
         :param draw:
         :param show_ids:
         :param restrict_fps:
+        :param states:
         :return:
         """
         if frame is None:

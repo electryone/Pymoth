@@ -2,12 +2,11 @@
 
 import cv2
 import numpy as np
-import time
 
-from .Instance import Instance
-from .utils import resize
-from .utils import box2xywh
-from .utils import box2rect
+from PyTrack.Instance import Instance
+from PyTrack.utils import resize
+from PyTrack.utils import box2xywh
+from PyTrack.utils import box2rect
 
 
 class Frame(object):
@@ -100,7 +99,7 @@ class Frame(object):
         """
         bounding_boxes = np.empty((self.get_n_instances(id=id), 4))
         for i, instance in enumerate(self.get_instances(id=id)):
-            bounding_boxes[i] = instance.bounding_box
+            bounding_boxes[i] = instance.get_bounding_box()
         return bounding_boxes
 
     def get_xywh(self, id=None):
