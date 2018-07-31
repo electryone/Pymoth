@@ -16,6 +16,7 @@ from PyTrack.Clock import Clock
 from PyTrack.utils import convert
 from PyTrack.utils import box2rect
 from PyTrack.utils import box2xywh
+from PyTrack.utils import load_info
 
 # MOTChallenge variables and format
 file_format = {"frame": 0,
@@ -34,13 +35,14 @@ class Sequence(object):
         self.img_dir = None
         self.frames = []
 
-    def load_frames(self, img_dir, label_paths, info):
+    def load_frames(self, img_dir, label_paths, info_path):
         """
         Initialises sequence from files
         Use when all the sequence data is known beforehand
         Load the image path and label data into each frame
         :return: None
         """
+        info = load_info(info_path)
         self.init_frames(info=info, img_dir=img_dir)
         with open(label_paths, "r") as file:
             for line in file:
@@ -53,7 +55,16 @@ class Sequence(object):
                           "conf": data["conf"]}
                 self.create_instance(data["frame"], kwargs)
 
-    def init_frames(self, info=None, n=None, img_dir=None):
+    def init_frames(self, info=None, n=None, img_dir=None, info_path=None):
+        """
+        :param info:
+        :param n:
+        :param img_dir:
+        :param info_path:
+        :return:
+        """
+        if info_path is not None:
+            info = load_info(info_path)
         if info is not None:
             self.info = copy.deepcopy(info)
             self.frames = [Frame(index=i) for i in range(self.info.seqLength)]
@@ -119,11 +130,24 @@ class Sequence(object):
             images[i] = frame.get_image(width=width, scale=scale, draw=draw, show_ids=show_ids)
         return images
 
+    def get_image(self, index=0, width=1, scale=1, draw=False, show_ids=False):
+        """
+        :param width:
+        :param scale:
+        :param draw:
+        :param show_ids:
+        :return:
+        """
+        return self.get_frame(index).get_image(width=width, scale=scale, draw=draw, show_ids=show_ids)
+
     def get_frame(self, frame):
         """
         :return:
         """
-        return self.frames[frame]
+        if 0 <= frame < self.info.seqLength:
+            return self.frames[frame]
+        else:
+            raise IndexError("Index %i out of range for Sequence with length %i" % (frame, self.info.seqLength))
 
     def get_frames(self):
         """
@@ -180,9 +204,9 @@ class Sequence(object):
         :return:
         """
         if frame is None:
-            return [instance.id for frame in self.frames for instance in frame.instances]
+            return [instance.get_id() for frame in self.frames for instance in frame.instances]
         else:
-            return [instance.id for instance in self.frames[frame].instances]
+            return [instance.get_id() for instance in self.frames[frame].instances]
 
     def get_n_ids(self, frame=None):
         """
