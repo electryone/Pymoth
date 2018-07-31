@@ -5,6 +5,40 @@ import numpy as np
 
 from .Namespace import Namespace
 
+"""
+chunks(l, n)
+get_shifty(array, shift=1)
+convert(string)
+load_info(file_path)
+resize(image, shape, keep_aspect=True, padding=0)
+pad(image, shape, value=0)
+box2rect(box)
+rect2box(rect)
+box2xywh(box)
+iou(rects)
+iou2(rects1, rects2)
+nms(array, by_row=True, by_col=True, threshold=0)
+"""
+
+
+def chunks(l, n):
+    """
+    :param l:
+    :param n:
+    :return:
+    """
+    n = max(1, n)
+    return list(l[i:i+n] for i in range(0, len(l), n))
+
+
+def get_shifty(array, shift=1):
+    """
+    :param array:
+    :param shift:
+    :return:
+    """
+    return array[:, -shift], array[:, shift:]
+
 
 def convert(string):
     """
@@ -30,15 +64,9 @@ def load_info(file_path):
     with open(file_path, "r") as file:
         for line in file:
             line = line.replace("\n", "")
-            if line:
-                try:
-                    var = line.split("=")[0]
-                    value = convert(line.split("=")[1])
-                    if isinstance(value, str):
-                        value = "\'%s\'" % value
-                    exec("info.add(%s=%s)" % (var, value))
-                except IndexError:
-                    pass
+            if "=" in line:
+                var, value = line.split("=")
+                info.add({var: convert(value)})
     return info
 
 
@@ -101,7 +129,6 @@ def rect2box(rect):
     :param rect: np.array: array of rects (x1, y1, x2, y2) can be 1D or 2D
     :return: box: np.array: np.array: array of boxes (left, top, w, h)
     """
-    print("Warning: rect2box is untested")
     box = np.empty_like(rect.T)
     box[0] = rect.T[0]
     box[1] = rect.T[1]

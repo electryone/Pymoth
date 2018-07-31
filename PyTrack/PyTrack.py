@@ -4,6 +4,7 @@ import os
 
 from PyTrack import Sequence
 from PyTrack import Namespace
+from PyTrack.utils import chunks
 
 
 class PyTrack(Namespace):
@@ -28,3 +29,24 @@ class PyTrack(Namespace):
                 if os.path.isfile(gt_path):
                     vars(vars(vars(self)[sub_dir])[data_set_])["gt"] = Sequence()
                     vars(vars(vars(self)[sub_dir])[data_set_])["gt"].load_frames(img_dir, gt_path, seq_path)
+
+    @staticmethod
+    def split(tracklets, size):
+        """
+        :param tracklets:
+        :param size:
+        :return: list: of equal length uninterrupted sequences of instances
+        """
+        sequences = []
+        for id in tracklets:
+            for sequence in id:
+                sequences.append(sequence)
+        euqi_sequences = []
+        for sequence in sequences:
+            for chunk in chunks(sequence, size):
+                if len(chunk) == size:
+                    euqi_sequences.append(chunk)
+        return euqi_sequences
+
+
+

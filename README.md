@@ -126,39 +126,50 @@ An object to store instances from single frame
 ### Methods
 
 **set_bounding_box(bounding_box)**
+
 Store the instance bounding box and set the instance mode
 
 **set_coordinates(coordinates)**
+
 Store the instance world coordinates and set the instance mode
 
 **set_id(id_number)**
+
 Sets the instance id. If the instance color is not already set, sets the instance color based on the instance id number
 - id_number: int: the unique identification number of the instance
 
 **get_bounding_box()**
+
 Returns np.array: the instance bounding box (left, top, width, height)
 
 **get_rect()**
+
 Returns: np.array(1, 4): the instance rect (left, top, right, bottom)
 
 **get_state()**
+
 Returns str: the human-readable state of the instance
 
 **get_xywh()**
+
 Returns: np.array(1, 4): the bounding box defined by (left, top, width, height)
 
 **get_id()**
+
 Returns: int: the unique identification number of the instance
 
 **get_appearance(shape=None, keep_aspect=True)**
+
 Returns: np.array: the image of the instance
 - shape: the required shape of the output image
 - keep_aspect: bool: whether to keep the object aspect ratio or not when resizing
 
 
-**draw(image, width=1, scale=1, show_ids=False)**
-Returns: np.array: the original image with the instance drawn
+**show(image=None, draw=False, width=1, scale=1, show_ids=False)**
+
+Returns: np.array: the frame image containing the instance
 - image: np.array: the image on which to draw the instance
+- draw: bool: whether or not to draw the object bounding box / world coordinates
 - width: int: the line width of the instance bounding box
 - scale: int: the scale of the drawing
 - show_ids: bool: whether or not to draw the instance id number

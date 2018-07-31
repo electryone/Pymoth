@@ -17,6 +17,8 @@ from PyTrack.utils import convert
 from PyTrack.utils import box2rect
 from PyTrack.utils import box2xywh
 from PyTrack.utils import load_info
+from PyTrack.utils import iou2
+from PyTrack.utils import nms
 
 # MOTChallenge variables and format
 file_format = {"frame": 0,
@@ -34,6 +36,15 @@ class Sequence(object):
         self.info = None
         self.img_dir = None
         self.frames = []
+
+    def set_ids(self, gt):
+        for det_frame, gt_frame in zip(self.get_frames(), gt.get_frames()):
+            mat = iou2(gt_frame.get_rects(), det_frame.get_rects())
+            if mat.any():
+                mat = nms(mat, threshold=0.5)
+                for gt_index, det_index in np.argwhere(mat):
+                    gt_instance = gt_frame.get_instances(index=gt_index)
+                    det_frame.get_instances(index=det_index).set_id(gt_instance.get_id())
 
     def load_frames(self, img_dir, label_paths, info_path):
         """
@@ -116,6 +127,19 @@ class Sequence(object):
         """
         self.frames[frame].add_instance(instance)
 
+    def get_tracklets(self, n_ids=None):
+        if n_ids is None:
+            n_ids = self.get_n_ids()
+        tracklets = [[] for _ in range(n_ids)]
+        for id in range(n_ids):
+            for instance in self.get_instances(id=id):
+                try:
+                    if instance.frame_index == tracklets[id][-1][-1].frame_index + 1:
+                        tracklets[id][-1].append(instance)
+                except IndexError:
+                    tracklets[id].append([instance])
+        return tracklets
+
     def get_images(self, width=1, scale=1, draw=False, show_ids=False):
         """
         :param width:
@@ -190,14 +214,14 @@ class Sequence(object):
             if id is None:
                 return [instance for frame in self.frames for instance in frame.instances]
             else:
-                return [instance for frame in self.frames for instance in frame.instances if instance.id == id]
+                return [instance for frame in self.frames for instance in frame.instances if instance.get_id() == id]
         else:
             if not 0 <= frame < self.get_n_frames():
                 return []
             if id is None:
-                return [instance for instance in self.frames[frame].instances]
+                return self.frames[frame].instances
             else:
-                return [instance for instance in self.frames[frame] if instance.id == id]
+                return [instance for instance in self.frames[frame] if instance.get_id() == id]
 
     def get_ids(self, frame=None):
         """
@@ -206,7 +230,7 @@ class Sequence(object):
         if frame is None:
             return [instance.get_id() for frame in self.frames for instance in frame.instances]
         else:
-            return [instance.get_id() for instance in self.frames[frame].instances]
+            return [instance.get_id() for instance in self.get_instances(frame=frame)]
 
     def get_n_ids(self, frame=None):
         """

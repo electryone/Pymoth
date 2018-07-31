@@ -81,11 +81,11 @@ class Instance(object):
         :return: None
         """
         self._id = id_number
-        if id_number != -1 and self.color is None:
+        if self._id == -1:
+            self.color = (255, 255, 255)
+        else:
             np.random.seed(id_number)
             self.color = tuple(map(int, np.random.randint(0, 255, 3)))
-        else:
-            self.color = (255, 255, 255)
 
     def get_bounding_box(self):
         """
@@ -137,22 +137,26 @@ class Instance(object):
         else:
             raise NotImplementedError("Get appearance not yet implemented for world_coordinates mode")
 
-    def draw(self, image, width=1, scale=1, show_ids=False):
+    def show(self, image=None, draw=False, width=1, scale=1, show_ids=False):
         """
         :param image: np.array: the image on which to draw the instance
+        :param draw: bool: whether or not to draw the instance bounding box / world coordinates
         :param width: int: the line width of the instance bounding box
         :param scale: int: the scale of the drawing
         :param show_ids: bool: whether or not to draw the instance id number
         :return: np.array: the original image with the instance drawn
         """
-        if self.mode == "bounding_box":
-            rect = self.get_rect() * scale
-            x1, y1, x2, y2 = rect.astype(int)
-            image = cv2.rectangle(image, pt1=(x1, y1), pt2=(x2, y2), color=self.color, thickness=width)
-            if show_ids and self.get_id() != -1:
-                image = cv2.putText(image, "%s" % self._id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2 * scale, self.color, thickness=width)
-            return image
-        elif self.mode == "world_coordinates":
-            raise NotImplementedError("Instance.draw() is not yet implemented for 'world_coordinates'")
-        else:
-            raise ValueError("Unknown instance mode, %s" % self.mode)
+        if image is None:
+            image = cv2.imread(self.img_path)
+        if draw:
+            if self.mode == "bounding_box":
+                rect = self.get_rect() * scale
+                x1, y1, x2, y2 = rect.astype(int)
+                image = cv2.rectangle(image, pt1=(x1, y1), pt2=(x2, y2), color=self.color, thickness=width)
+                if show_ids and self.get_id() != -1:
+                    image = cv2.putText(image, "%s" % self._id, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 2 * scale, self.color, thickness=width)
+                return image
+            elif self.mode == "world_coordinates":
+                raise NotImplementedError("Instance.draw() is not yet implemented for 'world_coordinates'")
+            else:
+                raise ValueError("Unknown instance mode, %s" % self.mode)

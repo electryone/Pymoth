@@ -54,7 +54,7 @@ class Frame(object):
             image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
         if draw:
             for instance in self.get_instances(states=states):
-                image = instance.draw(image, width=width, scale=scale, show_ids=show_ids)
+                image = instance.show(image=image, draw=draw, width=width, scale=scale, show_ids=show_ids)
         return image
 
     def get_n_instances(self, id=None):
@@ -66,19 +66,30 @@ class Frame(object):
         else:
             return len([1 for instance in self.instances if instance.get_id() == id])
 
-    def get_instances(self, id=None, states=None):
+    def get_instances(self, index=None, id=None, states=None):
         """
+        :param index:
         :param id:
+        :param states:
         :return:
         """
-        if id is None and states is None:
+        # Get all instances
+        if index is None and id is None and states is None:
             return self.instances
-        elif id is None:
+        # Get instances with given state
+        elif states is not None and id is None and index is None:
             return [instance for instance in self.instances if instance.get_state() in states]
-        elif states is None:
+        # Get instances with given id
+        elif id is not None and states is None and index is None:
             return [instance for instance in self.instances if instance.get_id() == id]
-        else:
+        # Get instance with given index
+        elif index is not None and states is None and id is None:
+            return self.instances[index]
+        # Get instance with given id and states
+        elif id is not None and states is not None and index is None:
             return [instance for instance in self.instances if instance.get_id() == id and instance.get_state() in states]
+        else:
+            raise NotImplementedError("combination of kwargs is currently not supported")
 
     def get_ids(self):
         """
