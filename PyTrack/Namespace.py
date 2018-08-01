@@ -13,10 +13,10 @@ class Namespace:
     def data(self):
         return self.__dict__
 
-    def summary(self, tabs=0):
+    def summary(self, tab_size=2, tabs=0):
         for key, item in self.__dict__.items():
             if isinstance(item, Namespace):
-                print("%s%s:" % ("  " * tabs, key))
+                print("%s%s:" % (" " * tab_size * tabs, key))
                 item.summary(tabs=tabs + 1)
             else:
-                print("%s%s: %s" % ("  " * tabs, key, item))
+                print("%s%s: %s" % (" " * tab_size * tabs, key, item))

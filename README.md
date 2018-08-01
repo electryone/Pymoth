@@ -1,14 +1,29 @@
 # PyTrack
 
+## Installation
+
+```
+pip install PyTrack
+```
+
 ## PyTrack(img_dirs, det_paths, info_paths, gt_paths=None)
 
-A framework for organising data in Multiple Object Tracking applications.
+A framework for organising data in Multiple Object Tracking applications
+Specifically designed for handling MOTChallenged datasets (MOT16 onwards)
 
 ### Attributes
 
 - **info:** A dictionary of info Namespaces where keys are the name specified in the info file
 - **det:** A dictionary of detection Sequences where keys are the name of the sequence
 - **gt:** A dictionary of ground truth Sequences where keys are the name of the sequence
+
+### Methods
+
+**summary(tab_size=2)**
+
+Prints a summary of the sequences loaded into the PyTrack Object
+
+- tab_size: int: number of spaces per tab
 
 ## Sequence()
 
@@ -111,11 +126,13 @@ An object to store instances from single frame
 ### Attributes
 
 **Private**
+
 - _bounding_box:  np.array(1, 4): the bounding box of the instance (left, top, width, height)
 - _coordinates: np.array(1, 3): the world coordinates of the instance (...)
 - _id: int: the unique identification number of the instance
 
 **Public**
+
 - color: tuple: the color used when drawing the instance bounding box
 - conf: int: the detection confidence of the instance (default = -1)
 - frame_index:  int: the index number of the frame that contains the instance
@@ -136,6 +153,7 @@ Store the instance world coordinates and set the instance mode
 **set_id(id_number)**
 
 Sets the instance id. If the instance color is not already set, sets the instance color based on the instance id number
+
 - id_number: int: the unique identification number of the instance
 
 **get_bounding_box()**
@@ -161,6 +179,7 @@ Returns: int: the unique identification number of the instance
 **get_appearance(shape=None, keep_aspect=True)**
 
 Returns: np.array: the image of the instance
+
 - shape: the required shape of the output image
 - keep_aspect: bool: whether to keep the object aspect ratio or not when resizing
 
@@ -168,6 +187,7 @@ Returns: np.array: the image of the instance
 **show(image=None, draw=False, width=1, scale=1, show_ids=False)**
 
 Returns: np.array: the frame image containing the instance
+
 - image: np.array: the image on which to draw the instance
 - draw: bool: whether or not to draw the object bounding box / world coordinates
 - width: int: the line width of the instance bounding box
