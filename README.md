@@ -6,18 +6,17 @@
 pip install PyTrack
 ```
 
-## PyTrack(img_dirs, det_paths, info_paths, gt_paths=None)
+## Contents
 
-A framework for organising data in Multiple Object Tracking applications
-Specifically designed for handling MOTChallenged datasets (MOT16 onwards)
+### PyTrack(directory)
 
-### Attributes
+A Namespace for handling entire MOT datasets, specifically designed for MOTChallenge (MOT16 onwards)
 
-- **info:** A dictionary of info Namespaces where keys are the name specified in the info file
-- **det:** A dictionary of detection Sequences where keys are the name of the sequence
-- **gt:** A dictionary of ground truth Sequences where keys are the name of the sequence
+Each sequence and its corresponding labels are loaded on PyTrack initialisation. 
 
-### Methods
+- **directory**: A string indicating the path to the dataset
+
+#### Methods
 
 **summary(tab_size=2)**
 
@@ -25,16 +24,77 @@ Prints a summary of the sequences loaded into the PyTrack Object
 
 - tab_size: int: number of spaces per tab
 
-## Sequence()
+**get()**
+
+Return __dict__ of the Namespeace
+
+**add(dictionary)**
+
+Update __dict__ with a new dictionary
+
+#### Examples
+
+Given layout of the MOTChallenge dataset as follows:
+
+```
+    .
+    └── MOTChallenge
+         ├── MOT15		# Not yet supported
+         ├── MOT16
+         ├── MOT17
+         │   ├── test
+         │   │   ├── MOT16-01
+         │   │   │   ├── det
+         │   │   │   │   └── det.txt
+         │   │   │   ├── img1
+         │   │   │   │   ├── 000001.jpg
+         │   │   │   │   ├── 000002.jpg
+         │   │   │   │   └── ...
+         │   │   │   └── seqinfo.ini
+         │   │   └── ...
+         │   └── train
+         │        ├── MOT16-02
+         │        │   ├── det
+         │        │   │   └── det.txt
+         │        │   ├── gt
+         │        │   │   └── gt.txt
+         │        │   ├── img1
+         │        │   │   ├── 000001.jpg
+         │        │   │   ├── 000002.jpg
+         │        │   │   └── ...
+         │        │   └── seqinfo.ini
+         │        └── MOT16-04
+         └ ...
+   
+```
+MOT16 would be loaded with:
+
+```
+tracks = PyTrack("path/to/MOTChallenge/MOT16")
+```
+
+Ground truth data for MOT16-02 would be accessed with:
+
+```
+tracks.train.MOT16_02.gt
+```
+
+Ground truth data for MOT16-02 would be displayed as a video with:
+
+```
+tracks.train.MOT16_02.gt.show(draw=True, show_ids=True, width=2)
+```
+
+### Sequence()
 
 An object to store object states throughout a video sequence.
 
-### Attributes
+#### Attributes
 
 - **info:** A Namespace containing information about the Sequence
 - **frames:** A list of Frame objects
 
-### Methods
+#### Methods
 
 **load_frames(img_dir, label_paths, info)**
 
@@ -76,17 +136,17 @@ An object to store object states throughout a video sequence.
 
 **get_appearance_pairs(shape=(128, 128, 3), seed=None)**
 
-## Frame
+### Frame
 
 An object to store instances from single frame
 
-### Attributes
+#### Attributes
 
 - **index:** the index in the frame in the sequence
 - **img_path:** the path to the image of the frame
 - **instances:** list of Instance objects
 
-### Methods
+#### Methods
 
 **create_instance(kwargs)**
 
@@ -110,7 +170,7 @@ An object to store instances from single frame
 
 **get_appearances(shape=None)**
 
-## Instance
+### Instance
 
 **Instance(id_number=-1, img_path=None, frame_index=None, bounding_box=None, coordinates=None, conf=None, state=None, color=None)**
 
@@ -123,7 +183,7 @@ An object to store instances from single frame
 - state: str: the human-readable state of the instance
 - color: tuple: the color used when drawing the instance bounding box
 
-### Attributes
+#### Attributes
 
 **Private**
 
@@ -140,7 +200,7 @@ An object to store instances from single frame
 - mode: str: human readable description of the instance mode ('bounding_box' or 'world_coordinates')
 - state: str: the human-readable state of the instance
 
-### Methods
+#### Methods
 
 **set_bounding_box(bounding_box)**
 
@@ -193,3 +253,11 @@ Returns: np.array: the frame image containing the instance
 - width: int: the line width of the instance bounding box
 - scale: int: the scale of the drawing
 - show_ids: bool: whether or not to draw the instance id number
+
+### Utils
+
+**iou()**
+
+**iou2()**
+
+**nms()**

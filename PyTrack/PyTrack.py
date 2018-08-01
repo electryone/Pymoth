@@ -11,9 +11,6 @@ class PyTrack(Namespace):
 
     def __init__(self, directory):
         Namespace.__init__(self)
-        self.__load_dataset(directory)
-
-    def __load_dataset(self, directory):
         for sub_dir in os.listdir(directory):
             vars(self)[sub_dir] = Namespace()
             for data_set in os.listdir("%s/%s" % (directory, sub_dir)):
@@ -24,11 +21,11 @@ class PyTrack(Namespace):
                 img_dir = "%s/%s/%s/img1" % (directory, sub_dir, data_set)
                 seq_path = "%s/%s/%s/seqinfo.ini" % (directory, sub_dir, data_set)
                 if os.path.isfile(det_path):
-                    vars(vars(vars(self)[sub_dir])[data_set_])["det"] = Sequence()
-                    vars(vars(vars(self)[sub_dir])[data_set_])["det"].load_frames(img_dir, det_path, seq_path)
+                    self.get()[sub_dir].get()[data_set_].get()["det"] = Sequence()
+                    self.get()[sub_dir].get()[data_set_].get()["det"].load_frames(img_dir, det_path, seq_path)
                 if os.path.isfile(gt_path):
-                    vars(vars(vars(self)[sub_dir])[data_set_])["gt"] = Sequence()
-                    vars(vars(vars(self)[sub_dir])[data_set_])["gt"].load_frames(img_dir, gt_path, seq_path)
+                    self.get()[sub_dir].get()[data_set_].get()["gt"] = Sequence()
+                    self.get()[sub_dir].get()[data_set_].get()["gt"].load_frames(img_dir, gt_path, seq_path)
 
     @staticmethod
     def split(tracklets, size):

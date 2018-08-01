@@ -11,9 +11,9 @@ def main(args):
 
     # Show sequences for each set of labels for each video sequence from each data set
     # i.e. <test/train> . <video_name> . <det/gt>
-    for _, data_sets in mot_challenge.data().items():
-        for _, sequences in data_sets.data().items():
-            for _, sequence in sequences.data().items():
+    for _, data_sets in mot_challenge.get().items():
+        for _, sequences in data_sets.get().items():
+            for _, sequence in sequences.get().items():
                 sequence.show(draw=True, width=2, show_ids=True, restrict_fps=True)
 
 

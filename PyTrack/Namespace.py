@@ -3,17 +3,29 @@
 
 class Namespace:
 
-    def __init__(self, kwargs=None):
+    def __init__(self, dictionary=None):
         if kwargs is not None:
-            self.__dict__.update(kwargs)
+            self.__dict__.update(dictionary)
 
-    def add(self, kwargs):
-        self.__dict__.update(kwargs)
+    def add(self, dictionary):
+        """
+        :param dictionary:
+        :return:
+        """
+        self.__dict__.update(dictionary)
 
-    def data(self):
+    def get(self):
+        """
+        :return:
+        """
         return self.__dict__
 
     def summary(self, tab_size=2, tabs=0):
+        """
+        :param tab_size:
+        :param tabs:
+        :return:
+        """
         for key, item in self.__dict__.items():
             if isinstance(item, Namespace):
                 print("%s%s:" % (" " * tab_size * tabs, key))
