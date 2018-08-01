@@ -10,8 +10,11 @@ class Namespace:
     def add(self, kwargs):
         self.__dict__.update(kwargs)
 
+    def data(self):
+        return self.__dict__
+
     def summary(self, tabs=0):
-        for key, item in vars(self).items():
+        for key, item in self.__dict__.items():
             if isinstance(item, Namespace):
                 print("%s%s:" % ("  " * tabs, key))
                 item.summary(tabs=tabs + 1)

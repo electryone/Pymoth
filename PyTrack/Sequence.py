@@ -9,30 +9,27 @@ import cv2
 import copy
 import numpy as np
 from itertools import count
-from keras.utils.generic_utils import Progbar
 
-from PyTrack.Frame import Frame
 from PyTrack.Clock import Clock
-from PyTrack.utils import convert
+from PyTrack.Frame import Frame
+from PyTrack.utils import Progbar
+
 from PyTrack.utils import box2rect
 from PyTrack.utils import box2xywh
-from PyTrack.utils import load_info
+from PyTrack.utils import convert
 from PyTrack.utils import iou2
+from PyTrack.utils import load_info
 from PyTrack.utils import nms
-
-# MOTChallenge variables and format
-file_format = {"frame": 0,
-               "id": 1,
-               "bb_left": 2,
-               "bb_top": 3,
-               "bb_width": 4,
-               "bb_height": 5,
-               "conf": 6}
 
 
 class Sequence(object):
 
-    def __init__(self):
+    def __init__(self, file_format="MOT"):
+        if file_format == "MOT":
+            from PyTrack.formats import mot_format as file_format
+        else:
+            raise ValueError("unknown file format %s" % file_format)
+        self.file_format = file_format
         self.info = None
         self.img_dir = None
         self.frames = []
@@ -386,13 +383,13 @@ class Sequence(object):
                 cv2.waitKey(1)
                 if restrict_fps:
                     clock.toc()
+            cv2.destroyWindow(self.info.name)
         else:
             image = self.frames[frame].get_image(width=width, scale=scale, draw=draw, show_ids=show_ids, states=states)
             cv2.imshow(self.info.name, image)
             cv2.waitKey(1)
 
-    @staticmethod
-    def __extract_data(line):
+    def __extract_data(self, line):
         """
         Extract label data from a line of the labels file
         :param line: str: line from a label file
@@ -400,7 +397,7 @@ class Sequence(object):
         """
         line = line.replace("\n", "").split(",")
         data = {}
-        for key, index in file_format.items():
+        for key, index in self.file_format.items():
             data[key] = convert(line[index])
         data["frame"] -= 1
         return data
