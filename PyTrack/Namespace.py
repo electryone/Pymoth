@@ -4,7 +4,7 @@
 class Namespace:
 
     def __init__(self, dictionary=None):
-        if kwargs is not None:
+        if dictionary is not None:
             self.__dict__.update(dictionary)
 
     def add(self, dictionary):
@@ -14,11 +14,23 @@ class Namespace:
         """
         self.__dict__.update(dictionary)
 
-    def get(self):
+    def get(self, set_name=None, namespace=None):
         """
+        :param set_name:
+        :param namespace:
         :return:
         """
-        return self.__dict__
+        if set_name is None:
+            return self.__dict__
+        else:
+            sub_set = []
+            namespace = self if namespace is None else namespace
+            for key, item in namespace.get().items():
+                if key == set_name:
+                    sub_set.append(item)
+                elif isinstance(item, Namespace):
+                    sub_set += self.get(set_name, item)
+            return sub_set
 
     def summary(self, tab_size=2, tabs=0):
         """

@@ -44,6 +44,3 @@ class PyTrack(Namespace):
                 if len(chunk) == size:
                     euqi_sequences.append(chunk)
         return euqi_sequences
-
-
-
