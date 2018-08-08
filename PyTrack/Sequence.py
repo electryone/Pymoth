@@ -85,7 +85,17 @@ class Sequence(object):
 
     def new_frame(self, img_path=None):
         self.frames.append(Frame(index=self.get_n_frames(), img_path=img_path))
-
+        
+    def stream(self, image_only=False):
+        """
+        :return: 
+        """
+        for frame in self.frames:
+            if image_only:
+                yield frame.get_image()
+            else:
+                yield frame
+            
     def set_frame_paths(self, img_dir):
         """
         :param img_dir:

@@ -6,5 +6,3 @@ from .Frame import Frame
 from .Instance import Instance
 from .Clock import Clock
 from .PyTrack import PyTrack
-
-name = "PyTrack"

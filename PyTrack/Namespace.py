@@ -7,30 +7,35 @@ class Namespace:
         if dictionary is not None:
             self.__dict__.update(dictionary)
 
-    def add(self, dictionary):
+    def add(self, dictionary, sub_space=None):
         """
         :param dictionary:
+        :param sub_space:
         :return:
         """
-        self.__dict__.update(dictionary)
+        if sub_space is not None:
+            sub_space = sub_space[0] if len(sub_space) == 1 else sub_space
+            if isinstance(sub_space, list):
+                self.get()[sub_space[0]].add(dictionary, sub_space[1:])
+            else:
+                self.get()[sub_space].add(dictionary)
+        else:
+            self.__dict__.update(dictionary)
 
-    def get(self, set_name=None, namespace=None):
+    def get(self, key=None):
         """
-        :param set_name:
-        :param namespace:
-        :return:
+        Note: key can be a list of sub Namespace names for which get() will be called recursively
+        :param key: key of the sub item to be returned
+        :return: dict
         """
-        if set_name is None:
+        if key is None:
             return self.__dict__
         else:
-            sub_set = []
-            namespace = self if namespace is None else namespace
-            for key, item in namespace.get().items():
-                if key == set_name:
-                    sub_set.append(item)
-                elif isinstance(item, Namespace):
-                    sub_set += self.get(set_name, item)
-            return sub_set
+            key = key[0] if len(key) == 1 else key
+            if isinstance(key, list):
+                return self.get(key[0]).get(key=key[1:])
+            else:
+                return self.__dict__[key]
 
     def summary(self, tab_size=2, tabs=0):
         """
