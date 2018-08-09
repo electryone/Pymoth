@@ -10,7 +10,7 @@ Instances can return information such as the bounding box, id number, and appear
 
 setuptools.setup(
     name="PyTrack",
-    version="0.0.2",
+    version="0.0.3",
     author="Samuel Westlake",
     author_email="s.t.westlake@cranfield.ac.uk",
     description="A package for handling MOTChallenge data sets",

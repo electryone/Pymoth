@@ -13,14 +13,15 @@ class Namespace:
         :param sub_space:
         :return:
         """
-        if sub_space is not None:
-            sub_space = sub_space[0] if len(sub_space) == 1 else sub_space
+        if sub_space is None:
+            self.__dict__.update(dictionary)
+        else:
+            if isinstance(sub_space, list):
+                sub_space = sub_space[0] if len(sub_space) == 1 else sub_space
             if isinstance(sub_space, list):
                 self.get()[sub_space[0]].add(dictionary, sub_space[1:])
             else:
                 self.get()[sub_space].add(dictionary)
-        else:
-            self.__dict__.update(dictionary)
 
     def get(self, key=None):
         """
@@ -31,7 +32,8 @@ class Namespace:
         if key is None:
             return self.__dict__
         else:
-            key = key[0] if len(key) == 1 else key
+            if isinstance(key, list):
+                key = key[0] if len(key) == 1 else key
             if isinstance(key, list):
                 return self.get(key[0]).get(key=key[1:])
             else:
