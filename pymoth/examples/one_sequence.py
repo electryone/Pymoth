@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-
-from PyTrack import Sequence
+from pymoth import Sequence
 
 
 def main(args):

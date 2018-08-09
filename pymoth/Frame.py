@@ -3,10 +3,10 @@
 import cv2
 import numpy as np
 
-from PyTrack.Instance import Instance
-from PyTrack.utils import resize
-from PyTrack.utils import box2xywh
-from PyTrack.utils import box2rect
+from pymoth.Instance import Instance
+from pymoth.utils import resize
+from pymoth.utils import box2xywh
+from pymoth.utils import box2rect
 
 
 class Frame(object):

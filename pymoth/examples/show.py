@@ -2,11 +2,11 @@
 
 import argparse
 
-from PyTrack import PyTrack
+from pymoth import DataSet
 
 
 def main(args):
-    mot_challenge = PyTrack(args.directory)
+    mot_challenge = DataSet(args.directory)
     mot_challenge.summary()
 
     # Show sequences for each set of labels for each video sequence from each data set

@@ -2,7 +2,7 @@
 
 import argparse
 
-from PyTrack import Sequence
+from pymoth import Sequence
 
 
 def main(args):

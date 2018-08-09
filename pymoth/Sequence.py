@@ -10,23 +10,23 @@ import copy
 import numpy as np
 from itertools import count
 
-from PyTrack.Clock import Clock
-from PyTrack.Frame import Frame
-from PyTrack.utils import Progbar
+from pymoth.Clock import Clock
+from pymoth.Frame import Frame
+from pymoth.utils import Progbar
 
-from PyTrack.utils import box2rect
-from PyTrack.utils import box2xywh
-from PyTrack.utils import convert
-from PyTrack.utils import iou2
-from PyTrack.utils import load_info
-from PyTrack.utils import nms
+from pymoth.utils import box2rect
+from pymoth.utils import box2xywh
+from pymoth.utils import convert
+from pymoth.utils import iou2
+from pymoth.utils import load_info
+from pymoth.utils import nms
 
 
 class Sequence(object):
 
     def __init__(self, file_format="MOT"):
         if file_format == "MOT":
-            from PyTrack.formats import mot_format as file_format
+            from pymoth.formats import mot_format as file_format
         else:
             raise ValueError("unknown file format %s" % file_format)
         self.file_format = file_format

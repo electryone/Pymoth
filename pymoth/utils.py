@@ -7,7 +7,7 @@ import sys
 import time
 
 
-from PyTrack.Namespace import Namespace
+from pymoth.Namespace import Namespace
 
 """
 chunks(l, n)

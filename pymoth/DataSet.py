@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-from PyTrack import Sequence
-from PyTrack import Namespace
+from pymoth import Sequence
+from pymoth import Namespace
 
 
-class PyTrack(Namespace):
+class DataSet(Namespace):
 
     def __init__(self, directory):
         Namespace.__init__(self)
