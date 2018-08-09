@@ -3,12 +3,12 @@
 ## Installation
 
 ```
-pip install PyTrack
+pip install pymoth
 ```
 
 ## Contents
 
-### PyTrack(directory)
+### DataSet(directory)
 
 A Namespace for handling entire MOT datasets, specifically designed for MOTChallenge (MOT16 onwards)
 
@@ -39,38 +39,35 @@ Given layout of the MOTChallenge dataset as follows:
 ```
     .
     └── MOTChallenge
-         ├── MOT15		# Not yet supported
-         ├── MOT16
-         ├── MOT17
-         │   ├── test
-         │   │   ├── MOT16-01
-         │   │   │   ├── det
-         │   │   │   │   └── det.txt
-         │   │   │   ├── img1
-         │   │   │   │   ├── 000001.jpg
-         │   │   │   │   ├── 000002.jpg
-         │   │   │   │   └── ...
-         │   │   │   └── seqinfo.ini
-         │   │   └── ...
-         │   └── train
-         │        ├── MOT16-02
-         │        │   ├── det
-         │        │   │   └── det.txt
-         │        │   ├── gt
-         │        │   │   └── gt.txt
-         │        │   ├── img1
-         │        │   │   ├── 000001.jpg
-         │        │   │   ├── 000002.jpg
-         │        │   │   └── ...
-         │        │   └── seqinfo.ini
-         │        └── MOT16-04
-         └ ...
-   
+         ├── MOT15 # seqinfo.ini files will have to be created manually
+         └── MOT16
+             ├── test
+             │   ├── MOT16-01
+             │   │   ├── det
+             │   │   │   └── det.txt
+             │   │   ├── img1
+             │   │   │   ├── 000001.jpg
+             │   │   │   ├── 000002.jpg
+             │   │   │   └── ...
+             │   │   └── seqinfo.ini
+             │   └── ...
+             └── train
+                  ├── MOT16-02
+                  │   ├── det
+                  │   │   └── det.txt
+                  │   ├── gt
+                  │   │   └── gt.txt
+                  │   ├── img1
+                  │   │   ├── 000001.jpg
+                  │   │   ├── 000002.jpg
+                  │   │   └── ...
+                  │   └── seqinfo.ini
+                  └── ...
 ```
 MOT16 would be loaded with:
 
 ```
-tracks = PyTrack("path/to/MOTChallenge/MOT16")
+tracks = DataSet("path/to/MOTChallenge/MOT16")
 ```
 
 Ground truth data for MOT16-02 would be accessed with:
@@ -96,9 +93,9 @@ An object to store object states throughout a video sequence.
 
 #### Methods
 
-**load_frames(img_dir, label_paths, info)**
-
 **init_frames(info=None, n=None, img_dir=None)**
+
+**load_frames(img_dir, label_paths, info)**
 
 **new_frame(img_path=None)**
 
@@ -134,7 +131,7 @@ An object to store object states throughout a video sequence.
 
 **show(scale=1, width=1, draw=False, show_id=False)**
 
-**get_appearance_pairs(shape=(128, 128, 3), seed=None)**
+**stream(image_only=False, scale=1)**
 
 ### Frame
 
